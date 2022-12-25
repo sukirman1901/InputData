@@ -1,0 +1,81 @@
+let ssId ="1iHfVog_w9c71RLvsKd5JGecsOVxr6qcZmqKgG9cj04o";
+let sheetName = "Sheet1";
+
+let d = new Date();
+let currentTime = d.toLocaleString("pt-BR", {timeZone: "Asia/Jakarta"});
+let tanggalSekarang = d.toLocaleString("pt-BR", {timeZone: "Asia/Jakarta", dateStyle: "short"});
+let jamSekarang = d.toLocaleString("pt-BR", {timeZone: "Asia/Jakarta", timeStyle: "medium"});
+
+//Balasan Ketika Sesuai Format
+const balsatu = `Terima kasih,sudah request Penawaran`;
+
+//Balasan Ketika Tidak Sesuai Format
+const baldua = `Format Penawaran yang Anda kirimkan salah, kirim format penawaran seperti dibawah ini
+
+*Penawaran Premi*
+Nama :`
+
+function doPost(e) {
+  let data = JSON.parse(e.postData.contents);
+  let sender = data.senderName;
+  let senderFormat = sender.toString().startsWith("+") ? sender.replace(/\+|\s|-/g,"") : sender;
+  let message = data.senderMessage;
+  let removeHeaFoo = message.replace(/^(?!.*Nama.*).+$/gm, "");
+  let removeLba = removeHeaFoo.replace(/^(\r\n|\n|\r)/gm, "");
+  let removeLbw = removeLba.replace(/(\r\n|\n|\r)$/gm, "");
+  let urutanA = removeLbw.replace(/(\r\n|\n|\r)/gm,"xAx@");
+  let urutan = urutanA.split("xAx@");
+  let messageRegex = removeLbw.replace(/(\s*)(\r\n|\n|\r)(.*)(:)(\s*)/gm,":"); //tanda pemisah ":" bisa diganti
+  let newMessage = messageRegex.split(":").slice(1); //tanda pemisah ":" boleh diganti tanda lain
+  let sheet = SpreadsheetApp.openById(ssId).getRangeByName(sheetName);
+
+  //Bisa hapus atau tambah data sesuai kebutuhan
+  if (
+    urutan[0].includes("Nama :")
+    //urutan[1].includes("Merk :") &&
+    //urutan[2].includes("Type :") &&
+    //urutan[3].includes("Tahun Kendaraan :") &&
+    //urutan[4].includes("Nopol :") &&
+    //urutan[5].includes("Harga :")
+
+  ) {
+    let ArrayInputData = [
+      currentTime,
+      tanggalSekarang,
+      jamSekarang,
+      senderFormat,
+      newMessage[0],
+      //newMessage[1],
+      //newMessage[2],
+      //newMessage[3],
+      //newMessage[4],
+      //newMessage[5]
+
+    ]
+    
+    sheet.appendRow(ArrayInputData);
+
+    let result =
+    {
+      "data": [
+        {
+          "message": balsatu
+        }
+      ]
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify(result));
+  }
+  else {
+    let result =
+    {
+      "data": [
+        {
+          "message": baldua
+        }
+      ]
+    };
+    return ContentService.createTextOutput(JSON.stringify(result));
+  }
+
+}
